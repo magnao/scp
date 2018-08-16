@@ -25,20 +25,20 @@
             (10, 550), im.FactorScale("glasses%d.png"%glasses, .45, .45),
             (10, 550), im.FactorScale("hair%d.png"%hair, .45, .45),
             (10, 550), im.FactorScale("shirt%d.png"%shirt, .45, .45),
-            (10, 550), im.FactorScale("tie%d.png"%tie, .45, .45),            
+            (10, 550), im.FactorScale("tie%d.png"%tie, .45, .45),
             (10, 550), im.FactorScale("pants%d.png"%pants, .45, .45)
             ),.1
 
 init:
     image char = DynamicDisplayable(draw_char) # using DynamicDisplayable ensures that any changes are visible immedietly
-    $ character = Character('Koma', color="#c8ffc8", window_left_padding=180, show_side_image=DynamicDisplayable(draw_char_side))
+    $ character = Character('MC', color="#c8ffc8", window_left_padding=180, show_side_image=DynamicDisplayable(draw_char_side))
 
 label start:
    show screen dressup_button
    $ dressup_button_show = True
 label cont:
     show char
-    character "La, la, la!"
+    character "This is the main character!"
     jump cont
 
 screen dressup_button: # a button to call the dressup game
@@ -67,7 +67,7 @@ label dressup:
         ui.imagebutton("arrowL.png", "arrowL.png", clicked=ui.returns("pantsL"), ypos=y+160, xpos=50)
         ui.imagebutton("arrowR.png", "arrowR.png", clicked=ui.returns("pantsR"), ypos=y+160, xpos=400)
         ui.textbutton("Return", clicked=ui.returns("goback")) # image button version: ui.imagebutton("return.png", "return_hover.png", clicked=ui.returns("goback"), ypos=0, xpos=0)
-        
+
     $ picked = ui.interact()
     # based on the selection, we increase or decrease the index of the appropriate dress up item
     if picked == "hairL":
@@ -114,9 +114,9 @@ label dressup:
         $ pants = pants_styles_num
     if pants > pants_styles_num:
         $ pants = 1
-        
+
     if picked == "goback":
-        return    
+        return
     jump dressup # we don't want to return on every click, this jump loops until we click on "back" button
 
     return

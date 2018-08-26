@@ -10,12 +10,24 @@
     def draw_char(st, at): # combine the dressup items into one displayable
         return LiveComposite(
             (361, 702), # image size
+            #new
+            (0, 0), ConditionSwitch(
+                "color == 0", "base.png",
+                "color == 1", "base1.png"),
+            #new long end
+            (0, 0), "glasses%d.png"%glasses, # (0, 0) is the position of a dressup item. Because these images are saved with spacing around them, we don't need to position them.
+            (0, 0), "hair%d.png"%hair,
+            (0, 0), "tie%d.png"%tie,
+            ),.1
+
+    def draw_char_clothes(st, at): # same as above, but with clothing overlay
+        return LiveComposite(
+            (361, 702), # image size
             (0, 0), "base.png",
             (0, 0), "glasses%d.png"%glasses, # (0, 0) is the position of a dressup item. Because these images are saved with spacing around them, we don't need to position them.
             (0, 0), "hair%d.png"%hair,
-            (0, 0), "shirt%d.png"%shirt,
-            (0, 0), "tie%d.png"%tie,
-            (0, 0), "pants%d.png"%pants
+            (0, 0), "overlay.png",
+            (0, 0), "tie%d.png"%tie
             ),.1
 
     def draw_char_side(st, at): # same thing as above, just scaled and positioned for the sideimage; there's probably more elegant solution than this...
@@ -24,19 +36,22 @@
             (10, 550), im.FactorScale("base.png", .45, .45),
             (10, 550), im.FactorScale("glasses%d.png"%glasses, .45, .45),
             (10, 550), im.FactorScale("hair%d.png"%hair, .45, .45),
-            (10, 550), im.FactorScale("shirt%d.png"%shirt, .45, .45),
-            (10, 550), im.FactorScale("tie%d.png"%tie, .45, .45),
-            (10, 550), im.FactorScale("pants%d.png"%pants, .45, .45)
+            (10, 550), im.FactorScale("overlay.png", .45, .45),
+            (10, 550), im.FactorScale("tie%d.png"%tie, .45, .45)
             ),.1
 
 init:
     image char = DynamicDisplayable(draw_char) # using DynamicDisplayable ensures that any changes are visible immedietly
-    $ character = Character('MC', color="#c8ffc8", window_left_padding=180, show_side_image=DynamicDisplayable(draw_char_side))
+    image char_clothes = DynamicDisplayable(draw_char_clothes)
+    $ character = Character('MC', color="#c8ffc8", window_left_padding=180) #, show_side_image=DynamicDisplayable(draw_char_side))
 
 label start:
    show screen dressup_button
    $ dressup_button_show = True
 label cont:
+    #new
+    $ color = 0
+    #end new
     show char
     character "This is the main character!"
     jump cont
@@ -61,12 +76,10 @@ label dressup:
         ui.imagebutton("arrowL.png", "arrowL.png", clicked=ui.returns("tieL"), ypos=y, xpos=50)
         ui.imagebutton("arrowR.png", "arrowR.png", clicked=ui.returns("tieR"), ypos=y, xpos=400)
         y += 80
-        ui.imagebutton("arrowL.png", "arrowL.png", clicked=ui.returns("shirtL"), ypos=y+80, xpos=50)
-        ui.imagebutton("arrowR.png", "arrowR.png", clicked=ui.returns("shirtR"), ypos=y+80, xpos=400)
-        y += 80
-        ui.imagebutton("arrowL.png", "arrowL.png", clicked=ui.returns("pantsL"), ypos=y+160, xpos=50)
-        ui.imagebutton("arrowR.png", "arrowR.png", clicked=ui.returns("pantsR"), ypos=y+160, xpos=400)
         ui.textbutton("Return", clicked=ui.returns("goback")) # image button version: ui.imagebutton("return.png", "return_hover.png", clicked=ui.returns("goback"), ypos=0, xpos=0)
+        ui.textbutton("Confirm appearance", clicked=ui.returns("confirmation"),  ypos=0, xpos=770)
+        ui.textbutton("Light", clicked=ui.returns("lightskin"), ypos=100, xpos=700)
+        ui.textbutton("Dark", clicked=ui.returns("darkskin"), ypos=100, xpos=600)
 
     $ picked = ui.interact()
     # based on the selection, we increase or decrease the index of the appropriate dress up item
@@ -97,23 +110,23 @@ label dressup:
     if tie > tie_styles_num:
         $ tie = 1
 
-    if picked == "shirtL":
-        $ shirt -= 1
-    if picked == "shirtR":
-        $ shirt += 1
-    if shirt < 1:
-        $ shirt = shirt_styles_num
-    if shirt > shirt_styles_num:
-        $ shirt = 1
+    if picked == "lightskin":
+        $ color = 0
+    if picked == "darkskin":
+        $ color = 1
 
-    if picked == "pantsL":
-        $ pants -= 1
-    if picked == "pantsR":
-        $ pants += 1
-    if pants < 1:
-        $ pants = pants_styles_num
-    if pants > pants_styles_num:
-        $ pants = 1
+    if picked == "confirmation":
+        menu:
+            "Are you sure this is the character you want?"
+            "Yes":
+                hide char
+                with fade
+                show char_clothes
+                with fade
+                character "This is the main character!"
+                return
+            "No":
+                return
 
     if picked == "goback":
         return

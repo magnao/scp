@@ -23,7 +23,9 @@
     def draw_char_clothes(st, at): # same as above, but with clothing overlay
         return LiveComposite(
             (361, 702), # image size
-            (0, 0), "base.png",
+            (0, 0), ConditionSwitch(
+                "color == 0", "base.png",
+                "color == 1", "base1.png"),
             (0, 0), "glasses%d.png"%glasses, # (0, 0) is the position of a dressup item. Because these images are saved with spacing around them, we don't need to position them.
             (0, 0), "hair%d.png"%hair,
             (0, 0), "overlay.png",
@@ -33,7 +35,10 @@
     def draw_char_side(st, at): # same thing as above, just scaled and positioned for the sideimage; there's probably more elegant solution than this...
         return LiveComposite(
             (361, 702),
-            (10, 550), im.FactorScale("base.png", .45, .45),
+            (10, 550), ConditionSwitch(
+                "color == 0", im.FactorScale("base.png", .45, .45),
+                "color == 1", im.FactorScale("base1.png", .45, .45)
+                ),
             (10, 550), im.FactorScale("glasses%d.png"%glasses, .45, .45),
             (10, 550), im.FactorScale("hair%d.png"%hair, .45, .45),
             (10, 550), im.FactorScale("overlay.png", .45, .45),
@@ -43,18 +48,46 @@
 init:
     image char = DynamicDisplayable(draw_char) # using DynamicDisplayable ensures that any changes are visible immedietly
     image char_clothes = DynamicDisplayable(draw_char_clothes)
-    $ character = Character('MC', color="#c8ffc8", window_left_padding=180) #, show_side_image=DynamicDisplayable(draw_char_side))
+    define character = Character('[playername]', color="#c8ffc8", window_left_padding=180, show_side_image=DynamicDisplayable(draw_char_side))
 
 label start:
    show screen dressup_button
-   $ dressup_button_show = True
+   #changed to false
+   $ dressup_button_show = False
 label cont:
-    #new
     $ color = 0
-    #end new
     show char
+    #new
+    $ playername = renpy.input("What is your name?")
+    $ playername = playername.strip()
+    if playername == "xXRaz0rXx":
+        "This name is invalid. A new name has been assigned."
+        $ playername = "Alexx"
+        jump cont2
+    if not playername:
+        menu:
+            "Are you sure you wish to proceed without a name? One will be assigned if you say yes."
+            "Yes":
+                $ playername = renpy.random.choice(['Ali', 'J. Doe', 'Solace', 'Dusty', 'El', 'Green'])
+                jump cont2
+            "No":
+                $ playername = renpy.input("What is your name?")
+                $ playername = playername.strip()
+                if playername == "xXRaz0rXx":
+                    "This name is invalid. A new name has been assigned."
+                    $ playername = "Alexx"
+                    jump cont2
+                if not playername:
+                    $ playername = renpy.random.choice(['Ali', 'J. Doe', 'Solace', 'Dusty', 'El', 'Green'])
+                    jump cont2
+    else:
+        jump cont2
+label cont2:
+    #end new
+    $ dressup_button_show = True
     character "This is the main character!"
-    jump cont
+    #changed from jump cont to return
+    return
 
 screen dressup_button: # a button to call the dressup game
     if dressup_button_show:
@@ -80,6 +113,7 @@ label dressup:
         ui.textbutton("Confirm appearance", clicked=ui.returns("confirmation"),  ypos=0, xpos=770)
         ui.textbutton("Light", clicked=ui.returns("lightskin"), ypos=100, xpos=700)
         ui.textbutton("Dark", clicked=ui.returns("darkskin"), ypos=100, xpos=600)
+        ui.textbutton("Kiwi", clicked=ui.returns("kiwiload"), ypos=200, xpos = 700)
 
     $ picked = ui.interact()
     # based on the selection, we increase or decrease the index of the appropriate dress up item
@@ -114,6 +148,12 @@ label dressup:
         $ color = 0
     if picked == "darkskin":
         $ color = 1
+
+    if picked == "kiwiload":
+        $ color = 0
+        $ hair = 4
+        $ glasses = 2
+        $ tie = 2
 
     if picked == "confirmation":
         menu:
